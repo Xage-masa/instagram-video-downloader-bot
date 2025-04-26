@@ -5,16 +5,13 @@ from bs4 import BeautifulSoup
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 
-# Включаем логирование
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 
-# Токен бота
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 
-# Функция скачивания видео через парсинг страницы Instagram
 def download_instagram_video_direct(url):
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36"
@@ -34,34 +31,23 @@ def download_instagram_video_direct(url):
         logging.error(f"Ошибка при скачивании видео: {e}")
         return None
 
-# Обработчик команды /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Привет! Отправь мне ссылку на видео в Instagram, и я скачаю его для тебя.")
+    await update.message.reply_text("Привет! Отправь мне ссылку на видео из Instagram!")
 
-# Обработчик текстовых сообщений
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
     if "instagram.com" in text:
-        await update.message.reply_text("Пробую скачать видео... Подожди пару секунд!")
+        await update.message.reply_text("Пробую скачать видео...")
         video = download_instagram_video_direct(text)
         if video:
             await update.message.reply_video(video)
         else:
-            await update.message.reply_text("Не удалось найти видео по этой ссылке. Возможно, ссылка неправильная или видео недоступно.")
+            await update.message.reply_text("Не удалось найти видео. Убедись, что ссылка верная.")
     else:
-        await update.message.reply_text("Пожалуйста, отправь ссылку на пост или Reels из Instagram.")
-
-# Основная функция запуска
-async def main():
-    app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
-    
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-
-    await app.run_polling()
+        await update.message.reply_text("Пожалуйста, отправь ссылку на Instagram пост или Reels.")
 
 if __name__ == "__main__":
-    import asyncio
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(main())
-
+    app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    app.run_polling()
